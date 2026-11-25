@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<h2>Registro de Clientes</h2>
+
+<div style="display: flex; gap: 30px; flex-wrap: wrap;">
+    <div class="contenedor" style="flex: 1; min-width: 320px;">
+        {% if editar %}
+        <h3>Editar Cliente</h3>
+        {% else %}
+        <h3>Agregar Cliente</h3>
+        {% endif %}
+        
+        <form method="POST" onsubmit="return validarFormularioClientes()">
+            <input type="hidden" name="accion" value="{% if editar %}editar{% else %}agregar{% endif %}">
+            {% if editar %}
+            <input type="hidden" name="id_cliente" value="{{ editar.id }}">
+            {% endif %}
+
+            <div class="grupo-form">
+                <label>Nombre completo <span class="campo-obligatorio">*</span></label>
+                <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre" 
+                       value="{{ editar.nombre if editar else '' }}">
+            </div>
+
+            <div class="grupo-form">
+                <label>Correo electrónico <span class="campo-obligatorio">*</span></label>
+                <input type="email" id="correo" name="correo" placeholder="ejemplo@correo.com"
+                       value="{{ editar.correo if editar else '' }}">
+            </div>
+
+            <div class="grupo-form">
+                <label>Teléfono <span class="campo-obligatorio">*</span></label>
+                <input type="tel" id="telefono" name="telefono" placeholder="10 dígitos"
+                       value="{{ editar.telefono if editar else '' }}">
+            </div>
+
+            <div class="grupo-form">
+                <label>Dirección</label>
+                <textarea id="direccion" name="direccion" rows="3" placeholder="Tu dirección completa">{{ editar.direccion if editar else '' }}</textarea>
+            </div>
+
+            <div class="grupo-form">
+                <label>Enlace de foto de perfil (opcional)</label>
+                <input type="url" id="imagen" name="imagen" placeholder="Enlace de imagen de Google"
+                       value="{{ editar.imagen if editar else '' }}">
+                <small style="color: #666;">Si lo dejas vacío, se usa una imagen por defecto.</small>
+            </div>
+
+            <button type="submit">{% if editar %}Guardar Cambios{% else %}Registrar Cliente{% endif %}</button>
+            {% if editar %}
+            <a href="{{ url_for('registro_clientes') }}" style="display: block; text-align: center; margin-top: 10px; color: #e67e22; text-decoration: none;">Cancelar edición</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="contenedor" style="flex: 1; min-width: 600px;">
+        <h3>Lista de Clientes</h3>
+        {% if clientes %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f39c12; color: white;">
+                    <th style="padding: 8px; border: 1px solid #ddd;">Foto</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">ID</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Nombre</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Teléfono</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Dirección</th>
+                    <th style="padding: 8px; border: 1px solid #ddd;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">
+                        <img src="{{ cliente.imagen | imagen_perfil }}" alt="Foto de perfil" 
+                             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                    </td>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">{{ cliente.id }}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd;">{{ cliente.nombre }}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd;">{{ cliente.telefono }}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; font-size: 13px;">{{ cliente.direccion or '—' }}</td>
+                    <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">
+                        <a href="{{ url_for('registro_clientes', editar_id=cliente.id) }}" 
+                           style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; margin-right: 5px; font-size: 13px;">Editar</a>
+                        <a href="{{ url_for('eliminar_cliente', cliente_id=cliente.id) }}" 
+                           onclick="return confirm('¿Eliminar este cliente?')"
+                           style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 13px;">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin-top: 15px;">No hay clientes registrados aún. ¡Agrega el primero arriba!</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function validarFormularioClientes() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const correo = document.getElementById('correo').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+
+    if (!nombre) { alert('Escribe el nombre'); return false; }
+    if (!correo || !correo.includes('@')) { alert('Correo inválido'); return false; }
+    if (!telefono || telefono.length !== 10) { alert('Teléfono debe tener 10 dígitos'); return false; }
+    return true;
+}
+</script>
+{% endblock %}
